@@ -92,10 +92,10 @@
 		  basemap: "topo",
 		  container: "viewDiv",
 		  map: webmap,
-		  center: [-93, 64],  // Corrected structure for center property
-		  scale: 80000000,
+		  center: [-93, 48],  // Corrected structure for center property
+		  scale: 30000000,
 		  spatialReference: {
-			wkid: 3857
+			wkid: 102008
 		  },
 		  constraints: {
 			snapToZoom: false,
@@ -175,11 +175,11 @@
   </head>
   <body>
     <h1 id="heading"> Provinces of Canada </h1> 
-	<p id="desc"> Click on a province to learn about how large is it in area! </p>
+	<p id="desc"> Click on a province to view its area! </p>
 	<button id="hideButton" onclick="hideElements()">Got it!</button>
 	<div id="viewDiv"></div>
     <div id="infoDiv" class="esri-widget">
-      <!-- <div id="instructions">Click on a province to view its area!</div> -->
+      <!-- <div id="instructions">Click on a province to learn about how large is it in area!</div> -->
       <div id="results">
         The area of <span id="country" class="emphasize">---</span> covers about <span id="area" class="emphasize">--</span> km<sup>2</sup> ! That is similar to <span id="comparison" class="emphasize">--</span> .
       </div>
