@@ -1,0 +1,188 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Provinces of Canada</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+		text-align: center;
+      }
+      #infoDiv {
+        padding: 10px;
+        width: 280px;
+      }
+      .emphasize{
+        font-weight: 500;}
+		
+	button {
+		padding: 10px 20px; 
+		margin: 0 auto 20px;
+		font-size: 16px;
+		background-color: #1E90FF;
+		color: #fff; 
+		border: none; 
+		cursor: pointer;
+    }
+
+    button:hover {
+      background-color: "
+    }
+	  
+      
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.28"></script>
+    <script>
+      require([
+        "esri/config",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/widgets/ScaleBar",
+        "esri/Graphic",
+//		"esri/layers/FeatureLayer",
+        "esri/layers/GeoJSONLayer",
+        "esri/geometry/geometryEngine",
+        "esri/intl",
+		"esri/WebMap",
+//		"esri/PopupTemplate",
+      ], (
+        esriConfig,
+        Map,
+        MapView,
+        ScaleBar,
+        Graphic,
+        GeoJSONLayer,
+        geometryEngine,
+//		FeatureLayer,
+        intl,
+		WebMap,
+//		PopupTemplate,
+      ) => {
+        esriConfig.apiKey = "AAPK7ea8e38f6b4b4f969ab170c41c01634akao_m4e5gL3AyABug_bvD9dN7kbXw7BSISXg4Y558XYUVj59ej6DtByYM0Cms4Tz";
+
+		const webmap = new WebMap({
+			  portalItem: {
+				id: "fe8c8e61b734407a833ca49caf8bcc28", 
+			  },
+			  outFields: ["PRENAME", "Shape_STAr"],
+//			  popupTemplate: new PopupTemplate({
+//				title: "{Country}", // Adjust to your attribute field
+//				content: "Area: {Shape_STAr} km<sup>2</sup>", // Adjust to your attribute field
+//			  }),
+		});
+		
+		webmap.load().then(() => {
+		  console.log("Web Map loaded successfully:", webmap);
+		}).catch(error => {
+		  console.error("Error loading web map:", error);
+		});
+
+//		var spatialReference = new SpatialReference({
+		  // Equal Earth Greenwich
+//		  wkid: 8857
+//		});
+
+		const view = new MapView({
+		  basemap: "topo",
+		  container: "viewDiv",
+		  map: webmap,
+		  center: [-93, 64],  // Corrected structure for center property
+		  scale: 80000000,
+		  spatialReference: {
+			wkid: 3857
+		  },
+		  constraints: {
+			snapToZoom: false,
+		  }
+		});
+
+        const scalebar = new ScaleBar({
+          view: view,
+          unit: "metric",
+        });
+
+        view.ui.add(scalebar, "bottom-right");
+        view.ui.add("infoDiv", "top-right");
+
+
+        const areaElement = document.getElementById("area");
+        const countryElement = document.getElementById("country");
+
+        view.on("click", async (event) => {
+			const layer = view.map.layers.getItemAt(0); // Adjust if you have multiple layers
+			const { results } = await view.hitTest(event);
+
+		  if (results.length === 0) {
+			return;
+		  }
+
+		const feature = results[0].graphic;
+		const { attributes, geometry } = feature;
+		const country = attributes.PRENAME; 
+		const area = getArea(geometry); 
+		
+
+		// Convert the calculated area to football fields or ice hockey fields
+		let areaInSquareMeters = parseFloat(area) * 1e6; // Convert square kilometers to square meters
+		console.log(`Area: ${area}, Area in Square Meters: ${areaInSquareMeters}, Type: ${typeof areaInSquareMeters}`);
+		let footballFieldArea = 7140; // Standard football field area in square meters
+		let iceHockeyFieldArea = 1800; // Standard ice hockey rink area in square meters
+
+		let footballFields = isNaN(areaInSquareMeters) ? 0 : Math.floor(areaInSquareMeters / footballFieldArea);
+		let iceHockeyFields = isNaN(areaInSquareMeters) ? 0 : Math.floor(areaInSquareMeters / iceHockeyFieldArea);
+
+		// Display results in the results div
+		const resultsElement = document.getElementById("comparison");
+		resultsElement.innerHTML = `${footballFields} football fields or ${iceHockeyFields} ice hockey fields!`;
+		
+		
+		countryElement.innerHTML = country;
+		areaElement.innerHTML = area;
+	  });
+
+
+        function getArea(polygon) {
+
+          const area = geometryEngine.planarArea(polygon, "square-kilometers");
+
+          return intl.formatNumber(area, {
+            useGrouping: false,
+            maximumFractionDigits: 0
+          });
+        }
+      });
+	  
+	  	  	// Added how to play description and button to make it disappear
+	function hideElements() {
+      // Get references to the heading, description and button
+      var heading = document.getElementById('heading');
+      var button = document.getElementById('hideButton');
+	  var desc = document.getElementById('desc');
+
+      // Hide the heading, description and button
+      heading.style.display = 'none';
+	  desc.style.display = 'none';
+      button.style.display = 'none';
+	  }
+	  
+    </script>
+  </head>
+  <body>
+    <h1 id="heading"> Provinces of Canada </h1> 
+	<p id="desc"> Click on a province to view its area! </p>
+	<button id="hideButton" onclick="hideElements()">Got it!</button>
+	<div id="viewDiv"></div>
+    <div id="infoDiv" class="esri-widget">
+      <!-- <div id="instructions">Click on a province to view its area!</div> -->
+      <div id="results">
+        The area of <span id="country" class="emphasize">---</span> covers about <span id="area" class="emphasize">--</span> km<sup>2</sup> ! That is similar to <span id="comparison" class="emphasize">--</span> .
+      </div>
+    </div>
+  </body>
+</html>
